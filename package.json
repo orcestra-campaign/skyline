@@ -11,9 +11,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@geoman-io/leaflet-geoman-free": "^2.15.0",
+    "@hscmap/healpix": "^1.4.12",
+    "leaflet": "^1.9.4",
     "pinia": "^2.1.7",
+    "plotly.js-dist": "^2.20.0",
     "vue": "^3.3.11",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "zarrita": "^0.4.0-next.8"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.3.3",
