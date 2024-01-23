@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import * as zarr from "zarrita";
 import * as healpix from '@hscmap/healpix';
+import LatLon from 'geodesy/latlon-ellipsoidal-vincenty.js';
 import Plotly from 'plotly.js-dist';
 
 const plot_container = ref(null);
@@ -39,9 +40,69 @@ function groupBy(xs, key) {
   }, {});
 };
 
+function expandPath(path, options) {
+  // NOTE: this function follows great circles
+
+  let segmentDistances = [];
+
+  for (let i = 0; i < props.path.length - 1; ++i) {
+    const start = new LatLon(props.path[i][1], props.path[i][0]);
+    const end = new LatLon(props.path[i+1][1], props.path[i+1][0]);
+    segmentDistances.push(start.distanceTo(end));
+  }
+  const totalDistance = segmentDistances.reduce((a, b) => a + b);
+  console.log(segmentDistances, totalDistance);
+
+  let nPoints = undefined;
+
+  if ( options.dx !== undefined ) {
+    nPoints = totalDistance / options.dx;
+  }
+
+  if ( options.maxPoints !== undefined ) {
+    if (nPoints === undefined || nPoints > options.maxPoints) {
+      nPoints = options.maxPoints;
+    }
+  }
+
+  if ( nPoints === undefined ) {
+    console.warn("nPoints is undefined", options);
+  }
+
+  const pointsPerSegment = segmentDistances.map(d => Math.max(1, Math.round(nPoints * d / totalDistance)));
+
+  let lons = [];
+  let lats = [];
+  let distances = [];
+  let distanceSoFar = 0;
+  for (let i = 0; i < segmentDistances.length; ++i) {
+    const start = new LatLon(props.path[i][1], props.path[i][0]);
+    const end = new LatLon(props.path[i+1][1], props.path[i+1][0]);
+    const initialBearing = start.initialBearingTo(end);
+
+    const ds = linspace(0, segmentDistances[i], pointsPerSegment[i], false);
+    for (let d of ds) {
+        const p = start.destinationPoint(d, initialBearing);
+        lons.push(p.lon);
+        lats.push(p.lat);
+        distances.push(distanceSoFar + d);
+    }
+    distanceSoFar += segmentDistances[i];
+  }
+  lons.push(props.path.at(-1)[0]);
+  lats.push(props.path.at(-1)[1]);
+  distances.push(distanceSoFar);
+  return {lons, lats, distances};
+}
+
 const fetchData = async () => {
+  if (props.path.length == 0) {
+    console.log("empty path");
+    return;
+  }
+
   const itime = 0;
-  const nx = 100;
+  const pathOptions = {dx: 50000, maxPoints: 300};
   const variable = props.variable;
 
   const root = await zarr.open(store, { kind: "group" });
@@ -53,11 +114,9 @@ const fetchData = async () => {
   const nside = npix2nside(arr.shape[dim2axis["cell"]]);
   console.log("nside:", nside, " order:", healpix.nside2order(nside));
 
-  // WARNING: this is a loxodrome
-  const lons = linspace(props.path[0][0], props.path[1][0], nx);
-  const lats = linspace(props.path[0][1], props.path[1][1], nx);
+  const {lons, lats, distances} = expandPath(props.path, pathOptions);
 
-  console.log(lons, lats);
+  console.log("lonlat", lons, lats);
   if (lons.every(Number.isFinite) && lons.every(Number.isFinite)) {
     console.log("ok, going ahead");
   } else {
@@ -69,7 +128,7 @@ const fetchData = async () => {
   const phis = lons.map(lon => (lon % 360) * (Math.PI / 180));
 
   const ipix = thetas.map((theta, i) => healpix.ang2pix_nest(nside, theta, phis[i]));
-  //const nx = ipix.length;
+  const nx = ipix.length;
   const pixchunks = ipix.map((pix, i) => [
                                   (pix / arr.chunks[dim2axis["cell"]]) >> 0,
                                   pix % arr.chunks[dim2axis["cell"]],
@@ -116,7 +175,7 @@ const fetchData = async () => {
   return {
     variable: variable,
     data: {
-      x: lats,
+      x: distances,
       y: levels,
       z: csdata,
       type: "heatmap",
