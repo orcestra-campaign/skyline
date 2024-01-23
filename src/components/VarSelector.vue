@@ -14,13 +14,25 @@ const props = defineProps({
 
 const store = computed(() => new zarr.FetchStore(props.store));
 
+
+const variable = defineModel("variable", {default: "", type: String});
+const variables = ref([]);
+
 async function getVars() {
-  const root = await zarr.open(store.value);
-  console.log(root);
+  const response = await fetch(props.store + "/.zmetadata");
+  const zmetadata = await response.json();
+  const vars = Object.entries(zmetadata.metadata)
+    .filter(([key, value]) => {
+      return key.endsWith("/.zattrs") &&
+             value._ARRAY_DIMENSIONS[0] == "time" &&
+             value._ARRAY_DIMENSIONS[1] == "level" &&
+             value._ARRAY_DIMENSIONS[2] == "cell";
+      })
+    .map(([key, _]) => key.split("/")[0]);
+  variables.value = vars;
+  return vars;
 }
 getVars();
-
-const variable = defineModel("variable", {default: "cc", type: String});
 
 watch(variable, (newVariable) => {
   emit("varSelect", newVariable);
@@ -31,6 +43,11 @@ watch(variable, (newVariable) => {
 
 <template>
   <div class="varselect">
-    <label :for="varInput">variable:</label> <input ref="varInput" v-model="variable" />
+    <select v-model="variable">
+      <option disabled value="">Select Variable</option>
+      <option v-for="option in variables" :key="option" :value="option">
+        {{ option }}
+      </option>
+    </select>
   </div>
 </template>
