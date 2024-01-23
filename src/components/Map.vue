@@ -20,17 +20,40 @@ onMounted(() => {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
-  map.pm.addControls({  
+  map.pm.addControls({
     position: 'topleft',
     drawMarker: false,
     drawCircleMarker: false,
     drawRectangle: false,
     drawPolygon: false,
+    drawCircle: false,
+    drawText: false,
+
     rotateMode: false,
   });
+
+  let activeLayer = null;
+
+  map.on("pm:drawstart", ({ workingLayer }) => {
+    if ( activeLayer !== null ) {
+      activeLayer.remove();
+      activeLayer = null;
+    }
+    workingLayer.on("pm:vertexadded", (e) => {
+      const coords = e.layer.toGeoJSON().geometry.coordinates;
+      console.log("add", coords);
+      emit("pathChange", coords);
+    });
+  });
+
   map.on("pm:create", (e) => {
-    console.log(e.layer.toGeoJSON().geometry.coordinates);
-    emit("pathChange", e.layer.toGeoJSON().geometry.coordinates);
+    activeLayer = e.layer;
+    activeLayer.on("pm:edit", (e) => {
+      const coords = e.layer.toGeoJSON().geometry.coordinates;
+      console.log("edit", coords);
+      emit("pathChange", coords);
+      emit("pathChange", e.layer.toGeoJSON().geometry.coordinates);
+    });
   });
 });
 </script>
