@@ -8,6 +8,15 @@ import VarSelector from './components/VarSelector.vue'
 
 const path = ref([ [ -25, 16 ], [ -22, -2 ] ]);
 const variable = ref("cc");
+const error = ref(null);
+
+window.addEventListener('error', (message, url, lineNumber) => {
+  error.value = "SERR: " + message + " @ " + url + ":" + lineNumber;
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  error.value = "AERR:" + event.reason.message + " @ " + event.reason.fileName + ":" + event.lineNumber;
+});
 
 const dataset = "https://swift.dkrz.de/v1/dkrz_948e7d4bbfbb445fbff5315fc433e36a/hera5/v2/hera5_P1M_hpz7.zarr";
 
@@ -41,6 +50,7 @@ const onVarSelect = (newVar) => {
   <!--<ManualPathEntry @path-change="onPathChange"></ManualPathEntry>-->
   <VarSelector :store="dataset" @var-select="onVarSelect"></VarSelector>
   <CrossSection :path="path" :variable="variable"></CrossSection>
+  <div v-if="error">{{ error }}</div>
 </template>
 
 <style scoped>
