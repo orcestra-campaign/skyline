@@ -102,7 +102,7 @@ const fetchData = async () => {
   }
 
   const itime = 0;
-  const pathOptions = {dx: 50000, maxPoints: 300};
+  const pathOptions = {dx: 20000, maxPoints: 300};
   const variable = props.variable;
 
   const root = await zarr.open(store, { kind: "group" });
