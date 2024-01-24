@@ -43,6 +43,12 @@ function groupBy(xs, key) {
 function expandPath(path, options) {
   // NOTE: this function follows great circles
 
+  if (path.length == 0) {
+    return {lats: [], lons: [], distances: []};
+  } else if (path.length == 1) {
+    return {lats: [path[0][1]], lons: [path[0][0]], distances: [0]};
+  }
+
   let segmentDistances = [];
 
   for (let i = 0; i < props.path.length - 1; ++i) {
@@ -50,7 +56,8 @@ function expandPath(path, options) {
     const end = new LatLon(props.path[i+1][1], props.path[i+1][0]);
     segmentDistances.push(start.distanceTo(end));
   }
-  const totalDistance = segmentDistances.reduce((a, b) => a + b);
+
+  const totalDistance = segmentDistances.reduce((a, b) => a + b, 0);
   console.log(segmentDistances, totalDistance);
 
   let nPoints = undefined;
