@@ -125,7 +125,7 @@ const fetchData = async () => {
   }
 
   const thetas = lats.map(lat => (90 - lat) * (Math.PI / 180));
-  const phis = lons.map(lon => (lon % 360) * (Math.PI / 180));
+  const phis = lons.map(lon => (lon < 0 ? 360 + lon : lon) * (Math.PI / 180));
 
   const ipix = thetas.map((theta, i) => healpix.ang2pix_nest(nside, theta, phis[i]));
   const nx = ipix.length;
