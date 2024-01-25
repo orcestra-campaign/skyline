@@ -5,6 +5,7 @@ import CrossSection from './components/CrossSection.vue'
 import Map from './components/Map.vue'
 import ManualPathEntry from './components/ManualPathEntry.vue'
 import VarSelector from './components/VarSelector.vue'
+import PathInfo from './components/PathInfo.vue';
 
 const path = ref([ [ -25, 16 ], [ -22, -2 ] ]);
 const variable = ref("cc");
@@ -48,11 +49,18 @@ const onVarSelect = (newVar) => {
   -->
   <Map @path-change="onPathChange"></Map>
   <!--<ManualPathEntry @path-change="onPathChange"></ManualPathEntry>-->
-  <VarSelector :store="dataset" @var-select="onVarSelect"></VarSelector>
+  <div class="statusline">
+    <VarSelector :store="dataset" @var-select="onVarSelect"></VarSelector>
+    <PathInfo :path="path"></PathInfo>
+  </div>
   <CrossSection :path="path" :variable="variable"></CrossSection>
   <div v-if="error">{{ error }}</div>
 </template>
 
 <style scoped>
-
+div.statusline {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 </style>
