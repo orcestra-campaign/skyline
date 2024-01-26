@@ -7,7 +7,7 @@ import Plotly from 'plotly.js-dist';
 
 const plot_container = ref(null);
 
-const store = new zarr.FetchStore("https://swift.dkrz.de/v1/dkrz_948e7d4bbfbb445fbff5315fc433e36a/hera5/v2/hera5_P1M_hpz7.zarr");
+const store = new zarr.FetchStore("https://swift.dkrz.de/v1/dkrz_948e7d4bbfbb445fbff5315fc433e36a/hera5/v2/hera5_PT1H_hpz7.zarr");
 
 const props = defineProps({
   path: {

@@ -20,7 +20,7 @@ window.addEventListener('unhandledrejection', (event) => {
   error.value = "AERR:" + event.reason.message + " @ " + event.reason.fileName + ":" + event.lineNumber;
 });
 
-const dataset = "https://swift.dkrz.de/v1/dkrz_948e7d4bbfbb445fbff5315fc433e36a/hera5/v2/hera5_P1M_hpz7.zarr";
+const dataset = "https://swift.dkrz.de/v1/dkrz_948e7d4bbfbb445fbff5315fc433e36a/hera5/v2/hera5_PT1H_hpz7.zarr";
 
 const onPathChange = (newPath) => {
   console.log("new path:", newPath);
