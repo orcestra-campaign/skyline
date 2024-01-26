@@ -64,7 +64,6 @@ function expandPath(path, options) {
   }
 
   const totalDistance = segmentDistances.reduce((a, b) => a + b, 0);
-  console.log(segmentDistances, totalDistance);
 
   let nPoints = undefined;
 
@@ -110,7 +109,6 @@ function expandPath(path, options) {
 
 const fetchData = async () => {
   if (props.path.length == 0) {
-    console.log("empty path");
     return;
   }
 
@@ -122,18 +120,12 @@ const fetchData = async () => {
   const arr = await zarr.open(root.resolve(variable), {kind: "array"});
   const level_promise = zarr.open(root.resolve("level"), {kind: "array"}).then(a => zarr.get(a, [null]));
   const dim2axis = Object.fromEntries(arr.attrs._ARRAY_DIMENSIONS.map((k, i) => [k, i]));
-  console.log(arr);
-  console.log(dim2axis);
   const nside = npix2nside(arr.shape[dim2axis["cell"]]);
-  console.log("nside:", nside, " order:", healpix.nside2order(nside));
 
   const {lons, lats, distances} = expandPath(props.path, pathOptions);
 
-  console.log("lonlat", lons, lats);
-  if (lons.every(Number.isFinite) && lons.every(Number.isFinite)) {
-    console.log("ok, going ahead");
-  } else {
-    console.log("broken coords");
+  if (!(lons.every(Number.isFinite) && lons.every(Number.isFinite))) {
+    console.warn("broken coords");
     return;
   }
 
@@ -154,8 +146,6 @@ const fetchData = async () => {
   const levelchunks = Array.from({length: Math.ceil(arr.shape[dim2axis["level"]] / arr.chunks[dim2axis["level"]])},
                                  (_, i) => i);
 
-
-  console.log(ipix, pixchunks, pixbychunk, timechunk, levelchunks);
 
   const ny = arr.shape[dim2axis["level"]];
   const cy = arr.chunks[dim2axis["level"]];
@@ -179,12 +169,9 @@ const fetchData = async () => {
         }
       }));
     }
-    //console.log(cellchunk, selection);
   }
   await Promise.all(promises);
-  console.log(csdata);
   const levels = Array.from((await level_promise).data).map(l => Number(l));
-  console.log("levels", levels);
   return {
     variable: variable,
     data: {
@@ -222,7 +209,6 @@ function render() {
       r: 60,
     },
   }
-  console.log(data);
   Plotly.newPlot(plot_container.value, [data.data], layout);
   ready.value = true;
   if (thisUpdateCount != updateCount.value) {
@@ -235,7 +221,6 @@ render();
 
 
 watch(props, async (newProps, oldProps) => {
-  console.log(oldProps, "->", newProps);
   render();
 })
 </script>
