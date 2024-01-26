@@ -9,6 +9,7 @@ import PathInfo from './components/PathInfo.vue';
 
 const path = ref([ [ -25, 16 ], [ -22, -2 ] ]);
 const variable = ref("cc");
+const ti = ref(0);
 const error = ref(null);
 
 window.addEventListener('error', (message, url, lineNumber) => {
@@ -30,6 +31,10 @@ const onVarSelect = (newVar) => {
   console.log("new var:", newVar);
   variable.value = newVar;
 };
+
+const onTimeSelect = (newTime) => {
+  ti.value = Number(newTime);
+};
 </script>
 
 <template>
@@ -50,10 +55,10 @@ const onVarSelect = (newVar) => {
   <Map @path-change="onPathChange"></Map>
   <!--<ManualPathEntry @path-change="onPathChange"></ManualPathEntry>-->
   <div class="statusline">
-    <VarSelector :store="dataset" @var-select="onVarSelect"></VarSelector>
+    <VarSelector :store="dataset" @var-select="onVarSelect" @time-select="onTimeSelect"></VarSelector>
     <PathInfo :path="path"></PathInfo>
   </div>
-  <CrossSection :path="path" :variable="variable"></CrossSection>
+  <CrossSection :path="path" :variable="variable" :timeIndex="ti"></CrossSection>
   <div v-if="error">{{ error }}</div>
 </template>
 

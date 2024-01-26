@@ -13,6 +13,7 @@
   "dependencies": {
     "@geoman-io/leaflet-geoman-free": "^2.15.0",
     "@hscmap/healpix": "^1.4.12",
+    "dayjs": "^1.11.10",
     "geodesy": "^2.4.0",
     "leaflet": "^1.9.4",
     "pinia": "^2.1.7",

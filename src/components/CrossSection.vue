@@ -18,10 +18,16 @@ const props = defineProps({
     type: String,
     required: false,
     default: "cc",
+  },
+  timeIndex: {
+    type: Number,
+    required: false,
+    default: 0,
   }
 })
 
-console.log("created with", props);
+const ready = ref(true);
+const updateCount = ref(0);
 
 function npix2nside(npix) {
   return Math.sqrt(npix / 12);
@@ -108,7 +114,7 @@ const fetchData = async () => {
     return;
   }
 
-  const itime = 0;
+  const itime = props.timeIndex;
   const pathOptions = {dx: 20000, maxPoints: 300};
   const variable = props.variable;
 
@@ -192,6 +198,13 @@ const fetchData = async () => {
 };
 
 function render() {
+  const thisUpdateCount = ++(updateCount.value);
+
+  if(!ready.value) {
+    return;
+  }
+  ready.value = false;
+
   fetchData().then(data => {
   const layout = {
     //title: "crosssection " + data.variable,
@@ -210,7 +223,12 @@ function render() {
     },
   }
   console.log(data);
-  Plotly.newPlot(plot_container.value, [data.data], layout);});
+  Plotly.newPlot(plot_container.value, [data.data], layout);
+  ready.value = true;
+  if (thisUpdateCount != updateCount.value) {
+    render();
+  }
+});
 }
 
 render();
